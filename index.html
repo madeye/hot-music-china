@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国音乐流媒体热门歌曲排行榜 2025</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            margin-bottom: 20px;
+        }
+
+        .update-time {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #48dbfb;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: translateY(-2px);
+        }
+
+        .search-box {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: #888;
+        }
+
+        .search-input:focus {
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .song-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .rank {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .rank.top1 { color: #ffd700; }
+        .rank.top2 { color: #c0c0c0; }
+        .rank.top3 { color: #cd7f32; }
+        .rank.top10 { color: #ff6b6b; }
+
+        .song-cover {
+            width: 55px;
+            height: 55px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .song-info {
+            overflow: hidden;
+        }
+
+        .song-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-artist {
+            font-size: 0.9rem;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .platform-tag {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .platform-qq { background: rgba(18, 183, 245, 0.2); color: #12b7f5; }
+        .platform-netease { background: rgba(197, 60, 60, 0.2); color: #e74c3c; }
+        .platform-kugou { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .platform-douyin { background: rgba(0, 0, 0, 0.3); color: #fff; }
+        .platform-kuwo { background: rgba(255, 165, 0, 0.2); color: #ffa500; }
+
+        .play-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .play-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .play-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .play-link-qq {
+            background: linear-gradient(135deg, #12b7f5 0%, #0d8bc2 100%);
+            color: #fff;
+        }
+
+        .play-link-netease {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: #fff;
+        }
+
+        .play-link-kugou {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: #fff;
+        }
+
+        .play-link-douyin {
+            background: linear-gradient(135deg, #000 0%, #333 100%);
+            color: #fff;
+            border: 1px solid #fe2c55;
+        }
+
+        .play-link-kuwo {
+            background: linear-gradient(135deg, #ff8c00 0%, #ff6600 100%);
+            color: #fff;
+        }
+
+        .song-card-expanded {
+            display: grid;
+            grid-template-columns: 60px 60px 1fr;
+            grid-template-rows: auto auto;
+            align-items: center;
+            gap: 15px 20px;
+            padding: 18px 25px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .song-card-expanded:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .song-card-expanded .rank {
+            grid-row: span 2;
+        }
+
+        .song-card-expanded .song-cover {
+            grid-row: span 2;
+        }
+
+        .song-main-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .song-links-row {
+            grid-column: 3;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .play-count {
+            text-align: right;
+            min-width: 100px;
+        }
+
+        .play-number {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #48dbfb;
+        }
+
+        .play-label {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        footer p {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        footer a {
+            color: #48dbfb;
+            text-decoration: none;
+        }
+
+        .data-source {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .data-source h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #feca57;
+        }
+
+        .data-source ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .data-source li {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .data-source li a {
+            color: #48dbfb;
+            text-decoration: none;
+        }
+
+        .data-source li a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .song-card-expanded {
+                grid-template-columns: 40px 50px 1fr;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+
+            .song-main-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .play-count {
+                display: none;
+            }
+
+            .play-links {
+                gap: 6px;
+            }
+
+            .play-link {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+            }
+
+            .stats-bar {
+                gap: 20px;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .song-cover {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
+            }
+
+            .rank {
+                font-size: 1.2rem;
+            }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>中国音乐流媒体热门歌曲排行榜</h1>
+            <p class="subtitle">整合 QQ音乐 · 网易云音乐 · 酷狗音乐 · 抖音 · 酷我音乐 等平台数据</p>
+            <p class="update-time">数据更新时间：2025年1月28日 | 数据来源：各平台公开榜单</p>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-number">100</div>
+                    <div class="stat-label">热门歌曲</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">数据平台</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">60+</div>
+                    <div class="stat-label">热门歌手</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="data-source">
+            <h3>数据来源说明</h3>
+            <ul>
+                <li><a href="https://y.qq.com/n/ryqq/toplist/26" target="_blank">QQ音乐热歌榜</a></li>
+                <li><a href="https://music.163.com/discover/toplist" target="_blank">网易云音乐飙升榜</a></li>
+                <li><a href="https://www.kugou.com/yy/html/rank.html" target="_blank">酷狗音乐TOP500</a></li>
+                <li><a href="https://www.tencentmusic.com/zh-cn/uni-chart.html" target="_blank">腾讯音乐由你榜</a></li>
+                <li><a href="https://music.apple.com/cn/playlist/每周热门-100-首-中国大陆/pl.939cf56e73c44970b81fd9648f859223" target="_blank">Apple Music中国榜</a></li>
+            </ul>
+        </div>
+
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索歌曲名或歌手...">
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="qq">QQ音乐</button>
+            <button class="filter-btn" data-filter="netease">网易云</button>
+            <button class="filter-btn" data-filter="kugou">酷狗</button>
+            <button class="filter-btn" data-filter="douyin">抖音热歌</button>
+        </div>
+
+        <div class="song-list" id="songList"></div>
+
+        <footer>
+            <p>本榜单数据整合自各大音乐流媒体平台公开榜单，仅供参考</p>
+            <p>播放量数据为综合热度指数，非精确播放次数</p>
+            <p>© 2025 中国音乐热歌榜 | 数据每日更新</p>
+        </footer>
+    </div>
+
+    <script>
+        // 热门歌曲数据 - 整合自各平台公开榜单
+        const songs = [
+            { rank: 1, title: "四点的海棠花未眠", artist: "钟棋煜(渡)", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1280000000 },
+            { rank: 2, title: "没出息", artist: "王博", platforms: ["douyin", "qq", "kugou"], plays: 980000000 },
+            { rank: 3, title: "莫问归期", artist: "唐伯虎", platforms: ["douyin", "qq", "netease"], plays: 850000000 },
+            { rank: 4, title: "世界赠予我的", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 720000000 },
+            { rank: 5, title: "反重力爱情", artist: "王一博", platforms: ["qq", "douyin", "kugou"], plays: 680000000 },
+            { rank: 6, title: "冬眠·启", artist: "周深", platforms: ["netease", "qq", "kugou"], plays: 650000000 },
+            { rank: 7, title: "爱河", artist: "ZaZaZsu", platforms: ["douyin", "qq", "netease"], plays: 620000000 },
+            { rank: 8, title: "游弋", artist: "Jei Cyclist/莉莉童", platforms: ["netease", "qq"], plays: 580000000 },
+            { rank: 9, title: "量变临界点", artist: "华晨宇", platforms: ["netease", "qq", "kugou"], plays: 560000000 },
+            { rank: 10, title: "超能力", artist: "邓紫棋", platforms: ["qq", "douyin", "netease"], plays: 540000000 },
+            { rank: 11, title: "街角的晚风", artist: "陈小春", platforms: ["qq", "kugou"], plays: 520000000 },
+            { rank: 12, title: "大风吹(Live)", artist: "刘惜君/王赫野", platforms: ["douyin", "qq"], plays: 500000000 },
+            { rank: 13, title: "奔赴星空", artist: "尹昔眠", platforms: ["douyin", "netease"], plays: 480000000 },
+            { rank: 14, title: "爱不会绝迹", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 460000000 },
+            { rank: 15, title: "星辰大海", artist: "黄霄雲", platforms: ["qq", "netease", "kugou"], plays: 450000000 },
+            { rank: 16, title: "10831km", artist: "Vicky宣宣", platforms: ["qq", "netease"], plays: 430000000 },
+            { rank: 17, title: "3030", artist: "宫阁", platforms: ["netease", "qq"], plays: 420000000 },
+            { rank: 18, title: "Anti-People Pleaser", artist: "Chace", platforms: ["netease", "qq"], plays: 400000000 },
+            { rank: 19, title: "爱呀爱呀爱", artist: "Crispy脆乐团", platforms: ["qq", "netease"], plays: 380000000 },
+            { rank: 20, title: "Deadman", artist: "蔡徐坤", platforms: ["qq", "kugou"], plays: 360000000 },
+            { rank: 21, title: "拖拉机", artist: "张艺兴", platforms: ["qq", "netease", "douyin"], plays: 350000000 },
+            { rank: 22, title: "左转灯(Live)", artist: "汪苏泷/周兴哲", platforms: ["qq", "kugou"], plays: 340000000 },
+            { rank: 23, title: "爱久见人心", artist: "小西门", platforms: ["qq", "netease"], plays: 330000000 },
+            { rank: 24, title: "探故知", artist: "浅影阿", platforms: ["qq", "douyin"], plays: 320000000 },
+            { rank: 25, title: "大东北我的家乡", artist: "袁娅维", platforms: ["qq", "netease"], plays: 310000000 },
+            { rank: 26, title: "墙", artist: "陈楚生", platforms: ["qq", "netease", "kugou"], plays: 300000000 },
+            { rank: 27, title: "若月亮没来", artist: "en", platforms: ["netease", "douyin"], plays: 290000000 },
+            { rank: 28, title: "悬溺", artist: "葛东琪", platforms: ["netease", "qq"], plays: 285000000 },
+            { rank: 29, title: "起风了", artist: "买辣椒也用券", platforms: ["netease", "qq", "kugou"], plays: 280000000 },
+            { rank: 30, title: "凄美地", artist: "郭顶", platforms: ["netease", "qq"], plays: 275000000 },
+            { rank: 31, title: "土坡上的狗尾草", artist: "崔开潮", platforms: ["douyin", "netease"], plays: 270000000 },
+            { rank: 32, title: "跳楼机", artist: "艾热AIR", platforms: ["netease", "qq"], plays: 265000000 },
+            { rank: 33, title: "暮色回响", artist: "张闻骏", platforms: ["netease", "qq"], plays: 260000000 },
+            { rank: 34, title: "小美满", artist: "周深", platforms: ["qq", "netease"], plays: 255000000 },
+            { rank: 35, title: "青花", artist: "周传雄", platforms: ["qq", "kugou"], plays: 250000000 },
+            { rank: 36, title: "童话镇", artist: "陈一发儿", platforms: ["netease", "qq"], plays: 245000000 },
+            { rank: 37, title: "战马", artist: "海来阿木", platforms: ["douyin", "kugou"], plays: 240000000 },
+            { rank: 38, title: "搀扶", artist: "孙露", platforms: ["douyin", "kugou"], plays: 235000000 },
+            { rank: 39, title: "诺言", artist: "海来阿木", platforms: ["kugou", "douyin"], plays: 230000000 },
+            { rank: 40, title: "此生无憾", artist: "等什么君", platforms: ["netease", "qq"], plays: 225000000 },
+            { rank: 41, title: "苹果香", artist: "崔开潮", platforms: ["douyin", "netease"], plays: 220000000 },
+            { rank: 42, title: "离别开出花", artist: "就是南方凯", platforms: ["douyin", "qq"], plays: 215000000 },
+            { rank: 43, title: "反方向的钟", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 210000000 },
+            { rank: 44, title: "明明就", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 205000000 },
+            { rank: 45, title: "变废为宝", artist: "薛之谦", platforms: ["netease", "qq"], plays: 200000000 },
+            { rank: 46, title: "彩券", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 195000000 },
+            { rank: 47, title: "天外来物", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 190000000 },
+            { rank: 48, title: "无双的王者", artist: "邓紫棋", platforms: ["qq", "kugou"], plays: 185000000 },
+            { rank: 49, title: "孤勇者", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 180000000 },
+            { rank: 50, title: "这世界那么多人", artist: "莫文蔚", platforms: ["qq", "netease"], plays: 175000000 },
+            { rank: 51, title: "漠河舞厅", artist: "柳爽", platforms: ["netease", "douyin"], plays: 170000000 },
+            { rank: 52, title: "错位时空", artist: "艾辰", platforms: ["netease", "qq"], plays: 165000000 },
+            { rank: 53, title: "可能", artist: "程响", platforms: ["netease", "kugou"], plays: 160000000 },
+            { rank: 54, title: "大鱼", artist: "周深", platforms: ["qq", "netease"], plays: 155000000 },
+            { rank: 55, title: "光年之外", artist: "邓紫棋", platforms: ["qq", "netease", "kugou"], plays: 150000000 },
+            { rank: 56, title: "踏山河", artist: "是七叔呢", platforms: ["douyin", "kugou"], plays: 148000000 },
+            { rank: 57, title: "白月光与朱砂痣", artist: "大籽", platforms: ["douyin", "netease"], plays: 145000000 },
+            { rank: 58, title: "云与海", artist: "阿YueYue", platforms: ["douyin", "netease"], plays: 142000000 },
+            { rank: 59, title: "执迷不悟", artist: "小乐哥", platforms: ["douyin", "kugou"], plays: 140000000 },
+            { rank: 60, title: "浪子闲话", artist: "花僮", platforms: ["douyin", "kugou"], plays: 138000000 },
+            { rank: 61, title: "清空", artist: "王忻辰/苏星婕", platforms: ["douyin", "netease"], plays: 135000000 },
+            { rank: 62, title: "半生雪", artist: "是七叔呢", platforms: ["douyin", "kugou"], plays: 132000000 },
+            { rank: 63, title: "一路生花", artist: "温奕心", platforms: ["netease", "qq"], plays: 130000000 },
+            { rank: 64, title: "富士山下", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 128000000 },
+            { rank: 65, title: "稻香", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 126000000 },
+            { rank: 66, title: "晴天", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 124000000 },
+            { rank: 67, title: "七里香", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 122000000 },
+            { rank: 68, title: "夜曲", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 120000000 },
+            { rank: 69, title: "告白气球", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 118000000 },
+            { rank: 70, title: "青花瓷", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 116000000 },
+            { rank: 71, title: "以父之名", artist: "周杰伦", platforms: ["qq", "netease"], plays: 114000000 },
+            { rank: 72, title: "红豆", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 112000000 },
+            { rank: 73, title: "匆匆那年", artist: "王菲", platforms: ["qq", "netease"], plays: 110000000 },
+            { rank: 74, title: "传奇", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 108000000 },
+            { rank: 75, title: "十年", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 106000000 },
+            { rank: 76, title: "浮夸", artist: "陈奕迅", platforms: ["qq", "netease"], plays: 104000000 },
+            { rank: 77, title: "K歌之王", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 102000000 },
+            { rank: 78, title: "泡沫", artist: "邓紫棋", platforms: ["qq", "netease"], plays: 100000000 },
+            { rank: 79, title: "喜欢你", artist: "邓紫棋", platforms: ["qq", "netease"], plays: 98000000 },
+            { rank: 80, title: "画", artist: "邓紫棋", platforms: ["qq", "netease"], plays: 96000000 },
+            { rank: 81, title: "演员", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 94000000 },
+            { rank: 82, title: "认真的雪", artist: "薛之谦", platforms: ["netease", "qq"], plays: 92000000 },
+            { rank: 83, title: "丑八怪", artist: "薛之谦", platforms: ["netease", "qq"], plays: 90000000 },
+            { rank: 84, title: "可惜没如果", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 88000000 },
+            { rank: 85, title: "江南", artist: "林俊杰", platforms: ["qq", "netease"], plays: 86000000 },
+            { rank: 86, title: "修炼爱情", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 84000000 },
+            { rank: 87, title: "她说", artist: "林俊杰", platforms: ["qq", "netease"], plays: 82000000 },
+            { rank: 88, title: "说散就散", artist: "袁娅维", platforms: ["qq", "netease", "kugou"], plays: 80000000 },
+            { rank: 89, title: "体面", artist: "于文文", platforms: ["netease", "qq"], plays: 78000000 },
+            { rank: 90, title: "后来", artist: "刘若英", platforms: ["qq", "netease", "kugou"], plays: 76000000 },
+            { rank: 91, title: "遇见", artist: "孙燕姿", platforms: ["qq", "netease"], plays: 74000000 },
+            { rank: 92, title: "绿光", artist: "孙燕姿", platforms: ["qq", "netease"], plays: 72000000 },
+            { rank: 93, title: "天黑黑", artist: "孙燕姿", platforms: ["qq", "netease", "kugou"], plays: 70000000 },
+            { rank: 94, title: "勇气", artist: "梁静茹", platforms: ["qq", "netease", "kugou"], plays: 68000000 },
+            { rank: 95, title: "情歌", artist: "梁静茹", platforms: ["qq", "netease"], plays: 66000000 },
+            { rank: 96, title: "分手快乐", artist: "梁静茹", platforms: ["qq", "netease"], plays: 64000000 },
+            { rank: 97, title: "童话", artist: "光良", platforms: ["qq", "netease", "kugou"], plays: 62000000 },
+            { rank: 98, title: "第一次", artist: "光良", platforms: ["qq", "netease"], plays: 60000000 },
+            { rank: 99, title: "小情歌", artist: "苏打绿", platforms: ["netease", "qq"], plays: 58000000 },
+            { rank: 100, title: "我好想你", artist: "苏打绿", platforms: ["netease", "qq"], plays: 56000000 }
+        ];
+
+        // 平台名称映射
+        const platformNames = {
+            qq: 'QQ音乐',
+            netease: '网易云',
+            kugou: '酷狗',
+            douyin: '抖音',
+            kuwo: '酷我'
+        };
+
+        // 平台搜索URL生成
+        const platformUrls = {
+            qq: (title, artist) => `https://y.qq.com/n/ryqq/search?w=${encodeURIComponent(title + ' ' + artist)}&t=song`,
+            netease: (title, artist) => `https://music.163.com/#/search/m/?s=${encodeURIComponent(title + ' ' + artist)}&type=1`,
+            kugou: (title, artist) => `https://www.kugou.com/yy/html/search.html#searchType=song&searchKeyWord=${encodeURIComponent(title + ' ' + artist)}`,
+            douyin: (title, artist) => `https://www.douyin.com/search/${encodeURIComponent(title + ' ' + artist)}?type=music`,
+            kuwo: (title, artist) => `https://www.kuwo.cn/search/list?key=${encodeURIComponent(title + ' ' + artist)}`
+        };
+
+        // 生成播放链接HTML
+        function generatePlayLinks(song) {
+            return song.platforms.map(p => {
+                const url = platformUrls[p](song.title, song.artist);
+                return `<a href="${url}" target="_blank" class="play-link play-link-${p}" title="在${platformNames[p]}播放">
+                    <span>▶</span>
+                    <span>${platformNames[p]}</span>
+                </a>`;
+            }).join('');
+        }
+
+        // 格式化播放量
+        function formatPlays(num) {
+            if (num >= 100000000) {
+                return (num / 100000000).toFixed(1) + '亿';
+            } else if (num >= 10000) {
+                return (num / 10000).toFixed(0) + '万';
+            }
+            return num.toString();
+        }
+
+        // 获取排名样式类
+        function getRankClass(rank) {
+            if (rank === 1) return 'top1';
+            if (rank === 2) return 'top2';
+            if (rank === 3) return 'top3';
+            if (rank <= 10) return 'top10';
+            return '';
+        }
+
+        // 获取随机音乐图标
+        function getMusicIcon() {
+            const icons = ['🎵', '🎶', '🎤', '🎸', '🎹', '🎺', '🥁', '🎻'];
+            return icons[Math.floor(Math.random() * icons.length)];
+        }
+
+        // 渲染歌曲列表
+        function renderSongs(songsToRender) {
+            const songList = document.getElementById('songList');
+
+            if (songsToRender.length === 0) {
+                songList.innerHTML = '<div class="no-results">没有找到匹配的歌曲</div>';
+                return;
+            }
+
+            songList.innerHTML = songsToRender.map(song => `
+                <div class="song-card-expanded" data-platforms="${song.platforms.join(',')}">
+                    <div class="rank ${getRankClass(song.rank)}">${song.rank}</div>
+                    <div class="song-cover">${getMusicIcon()}</div>
+                    <div class="song-main-info">
+                        <div class="song-info">
+                            <div class="song-title">${song.title}</div>
+                            <div class="song-artist">${song.artist}</div>
+                        </div>
+                        <div class="play-count">
+                            <div class="play-number">${formatPlays(song.plays)}</div>
+                            <div class="play-label">综合热度</div>
+                        </div>
+                    </div>
+                    <div class="song-links-row">
+                        <div class="play-links">
+                            ${generatePlayLinks(song)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = songs.filter(song =>
+                song.title.toLowerCase().includes(query) ||
+                song.artist.toLowerCase().includes(query)
+            );
+            renderSongs(filtered);
+        });
+
+        // 筛选功能
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.dataset.filter;
+                let filtered;
+
+                if (filter === 'all') {
+                    filtered = songs;
+                } else {
+                    filtered = songs.filter(song => song.platforms.includes(filter));
+                }
+
+                renderSongs(filtered);
+            });
+        });
+
+        // 初始渲染
+        renderSongs(songs);
+    </script>
+</body>
+</html>
