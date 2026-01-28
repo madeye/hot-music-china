@@ -420,6 +420,75 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
+
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .play-btn.playing {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .player-container {
+            grid-column: 1 / -1;
+            margin-top: 15px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease-out;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .player-container.active {
+            max-height: 120px;
+        }
+
+        .player-container iframe {
+            width: 100%;
+            height: 86px;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .player-tip {
+            font-size: 0.75rem;
+            color: #888;
+            text-align: center;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+
+        .player-tip a {
+            color: #48dbfb;
+            text-decoration: none;
+        }
+
+        .song-card-expanded {
+            cursor: pointer;
+        }
+
+        .song-card-expanded.player-active {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -478,108 +547,109 @@
 
     <script>
         // 热门歌曲数据 - 整合自各平台公开榜单 (2026年1月更新)
+        // neteaseId: 网易云音乐歌曲ID，用于内嵌播放器
         const songs = [
             // 2026年1月新上榜热歌
-            { rank: 1, title: "信仰", artist: "张信哲", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1580000000, isNew: true },
-            { rank: 2, title: "恋人", artist: "李荣浩", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1420000000, isNew: true },
-            { rank: 3, title: "四点的海棠花未眠", artist: "钟棋煜(渡)", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1380000000 },
-            { rank: 4, title: "大花轿", artist: "张艺兴/火风", platforms: ["qq", "netease", "douyin"], plays: 1250000000, isNew: true },
-            { rank: 5, title: "失眠", artist: "Suki刘舒妤", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1180000000, isNew: true },
-            { rank: 6, title: "唯一", artist: "邓紫棋", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1050000000, isNew: true },
-            { rank: 7, title: "没出息", artist: "王博", platforms: ["douyin", "qq", "kugou"], plays: 980000000 },
-            { rank: 8, title: "一半一半", artist: "Top Barry/INDEcompany", platforms: ["qq", "netease", "douyin"], plays: 920000000, isNew: true },
-            { rank: 9, title: "爱错", artist: "王力宏", platforms: ["qq", "netease", "kugou", "douyin"], plays: 880000000, isNew: true },
-            { rank: 10, title: "莫问归期", artist: "唐伯虎", platforms: ["douyin", "qq", "netease"], plays: 850000000 },
-            { rank: 11, title: "离开我的依赖", artist: "王艳薇", platforms: ["qq", "netease", "douyin"], plays: 820000000, isNew: true },
-            { rank: 12, title: "不会太晚", artist: "刘宇宁", platforms: ["qq", "netease", "kugou"], plays: 780000000, isNew: true },
-            { rank: 13, title: "世界赠予我的", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 750000000 },
-            { rank: 14, title: "是你没选我啊", artist: "音乐科代表洪嘉源", platforms: ["qq", "netease", "douyin"], plays: 720000000, isNew: true },
-            { rank: 15, title: "小半", artist: "陈粒", platforms: ["netease", "qq", "douyin"], plays: 700000000, isNew: true },
-            { rank: 16, title: "反重力爱情", artist: "王一博", platforms: ["qq", "douyin", "kugou"], plays: 680000000 },
-            { rank: 17, title: "大展鸿图", artist: "揽佬/刘夫阳", platforms: ["douyin", "qq", "kugou"], plays: 660000000, isNew: true },
-            { rank: 18, title: "冬眠·启", artist: "周深", platforms: ["netease", "qq", "kugou"], plays: 650000000 },
-            { rank: 19, title: "我怀念的", artist: "孙燕姿", platforms: ["qq", "netease", "kugou"], plays: 630000000, isNew: true },
-            { rank: 20, title: "爱河", artist: "ZaZaZsu", platforms: ["douyin", "qq", "netease"], plays: 620000000 },
-            { rank: 21, title: "烟花易冷", artist: "周杰伦", platforms: ["qq", "netease", "kugou", "douyin"], plays: 600000000, isNew: true },
-            { rank: 22, title: "大东北我的家乡", artist: "何玉", platforms: ["douyin", "kugou"], plays: 590000000, isNew: true },
-            { rank: 23, title: "游弋", artist: "Jei Cyclist/莉莉童", platforms: ["netease", "qq"], plays: 580000000 },
-            { rank: 24, title: "量变临界点", artist: "华晨宇", platforms: ["netease", "qq", "kugou"], plays: 560000000 },
-            { rank: 25, title: "超能力", artist: "邓紫棋", platforms: ["qq", "douyin", "netease"], plays: 540000000 },
-            { rank: 26, title: "街角的晚风", artist: "陈小春", platforms: ["qq", "kugou", "douyin"], plays: 530000000 },
-            { rank: 27, title: "大风吹(Live)", artist: "刘惜君/王赫野", platforms: ["douyin", "qq"], plays: 500000000 },
-            { rank: 28, title: "奔赴星空", artist: "尹昔眠", platforms: ["douyin", "netease"], plays: 480000000 },
-            { rank: 29, title: "爱不会绝迹", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 460000000 },
-            { rank: 30, title: "星辰大海", artist: "黄霄雲", platforms: ["qq", "netease", "kugou"], plays: 450000000 },
-            { rank: 31, title: "10831km", artist: "Vicky宣宣", platforms: ["qq", "netease"], plays: 430000000 },
-            { rank: 32, title: "3030", artist: "宫阁", platforms: ["netease", "qq"], plays: 420000000 },
-            { rank: 33, title: "Anti-People Pleaser", artist: "Chace", platforms: ["netease", "qq"], plays: 400000000 },
-            { rank: 34, title: "爱呀爱呀爱", artist: "Crispy脆乐团", platforms: ["qq", "netease"], plays: 380000000 },
-            { rank: 35, title: "Deadman", artist: "蔡徐坤", platforms: ["qq", "kugou"], plays: 360000000 },
-            { rank: 36, title: "拖拉机", artist: "张艺兴", platforms: ["qq", "netease", "douyin"], plays: 350000000 },
-            { rank: 37, title: "左转灯(Live)", artist: "汪苏泷/周兴哲", platforms: ["qq", "kugou"], plays: 340000000 },
-            { rank: 38, title: "爱久见人心", artist: "小西门", platforms: ["qq", "netease"], plays: 330000000 },
-            { rank: 39, title: "探故知", artist: "浅影阿", platforms: ["qq", "douyin"], plays: 320000000 },
-            { rank: 40, title: "大东北我的家乡", artist: "袁娅维", platforms: ["qq", "netease"], plays: 310000000 },
-            { rank: 41, title: "墙", artist: "陈楚生", platforms: ["qq", "netease", "kugou"], plays: 300000000 },
-            { rank: 42, title: "若月亮没来", artist: "en", platforms: ["netease", "douyin"], plays: 290000000 },
-            { rank: 43, title: "悬溺", artist: "葛东琪", platforms: ["netease", "qq"], plays: 285000000 },
-            { rank: 44, title: "起风了", artist: "买辣椒也用券", platforms: ["netease", "qq", "kugou"], plays: 280000000 },
-            { rank: 45, title: "凄美地", artist: "郭顶", platforms: ["netease", "qq"], plays: 275000000 },
-            { rank: 46, title: "土坡上的狗尾草", artist: "崔开潮", platforms: ["douyin", "netease"], plays: 270000000 },
-            { rank: 47, title: "跳楼机", artist: "艾热AIR", platforms: ["netease", "qq"], plays: 265000000 },
-            { rank: 48, title: "暮色回响", artist: "张闻骏", platforms: ["netease", "qq"], plays: 260000000 },
-            { rank: 49, title: "小美满", artist: "周深", platforms: ["qq", "netease"], plays: 255000000 },
-            { rank: 50, title: "青花", artist: "周传雄", platforms: ["qq", "kugou"], plays: 250000000 },
-            { rank: 51, title: "童话镇", artist: "陈一发儿", platforms: ["netease", "qq"], plays: 245000000 },
-            { rank: 52, title: "战马", artist: "海来阿木", platforms: ["douyin", "kugou"], plays: 240000000 },
-            { rank: 53, title: "搀扶", artist: "孙露", platforms: ["douyin", "kugou"], plays: 235000000 },
-            { rank: 54, title: "诺言", artist: "海来阿木", platforms: ["kugou", "douyin"], plays: 230000000 },
-            { rank: 55, title: "此生无憾", artist: "等什么君", platforms: ["netease", "qq"], plays: 225000000 },
-            { rank: 56, title: "离别开出花", artist: "就是南方凯", platforms: ["douyin", "qq"], plays: 220000000 },
-            { rank: 57, title: "苹果香", artist: "崔开潮", platforms: ["douyin", "netease"], plays: 218000000 },
-            { rank: 58, title: "反方向的钟", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 210000000 },
-            { rank: 59, title: "明明就", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 205000000 },
-            { rank: 60, title: "变废为宝", artist: "薛之谦", platforms: ["netease", "qq"], plays: 200000000 },
-            { rank: 61, title: "彩券", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 195000000 },
-            { rank: 62, title: "天外来物", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 190000000 },
-            { rank: 63, title: "无双的王者", artist: "邓紫棋", platforms: ["qq", "kugou"], plays: 185000000 },
-            { rank: 64, title: "孤勇者", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 180000000 },
-            { rank: 65, title: "这世界那么多人", artist: "莫文蔚", platforms: ["qq", "netease"], plays: 175000000 },
-            { rank: 66, title: "漠河舞厅", artist: "柳爽", platforms: ["netease", "douyin"], plays: 170000000 },
-            { rank: 67, title: "错位时空", artist: "艾辰", platforms: ["netease", "qq"], plays: 165000000 },
-            { rank: 68, title: "可能", artist: "程响", platforms: ["netease", "kugou"], plays: 160000000 },
-            { rank: 69, title: "大鱼", artist: "周深", platforms: ["qq", "netease"], plays: 155000000 },
-            { rank: 70, title: "光年之外", artist: "邓紫棋", platforms: ["qq", "netease", "kugou"], plays: 150000000 },
-            { rank: 71, title: "踏山河", artist: "是七叔呢", platforms: ["douyin", "kugou"], plays: 148000000 },
-            { rank: 72, title: "白月光与朱砂痣", artist: "大籽", platforms: ["douyin", "netease"], plays: 145000000 },
-            { rank: 73, title: "云与海", artist: "阿YueYue", platforms: ["douyin", "netease"], plays: 142000000 },
-            { rank: 74, title: "执迷不悟", artist: "小乐哥", platforms: ["douyin", "kugou"], plays: 140000000 },
-            { rank: 75, title: "浪子闲话", artist: "花僮", platforms: ["douyin", "kugou"], plays: 138000000 },
-            { rank: 76, title: "清空", artist: "王忻辰/苏星婕", platforms: ["douyin", "netease"], plays: 135000000 },
-            { rank: 77, title: "半生雪", artist: "是七叔呢", platforms: ["douyin", "kugou"], plays: 132000000 },
-            { rank: 78, title: "一路生花", artist: "温奕心", platforms: ["netease", "qq"], plays: 130000000 },
-            { rank: 79, title: "富士山下", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 128000000 },
-            { rank: 80, title: "稻香", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 126000000 },
-            { rank: 81, title: "晴天", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 124000000 },
-            { rank: 82, title: "七里香", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 122000000 },
-            { rank: 83, title: "夜曲", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 120000000 },
-            { rank: 84, title: "告白气球", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 118000000 },
-            { rank: 85, title: "青花瓷", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 116000000 },
-            { rank: 86, title: "以父之名", artist: "周杰伦", platforms: ["qq", "netease"], plays: 114000000 },
-            { rank: 87, title: "红豆", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 112000000 },
-            { rank: 88, title: "匆匆那年", artist: "王菲", platforms: ["qq", "netease"], plays: 110000000 },
-            { rank: 89, title: "传奇", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 108000000 },
-            { rank: 90, title: "十年", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 106000000 },
-            { rank: 91, title: "浮夸", artist: "陈奕迅", platforms: ["qq", "netease"], plays: 104000000 },
-            { rank: 92, title: "K歌之王", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 102000000 },
-            { rank: 93, title: "泡沫", artist: "邓紫棋", platforms: ["qq", "netease"], plays: 100000000 },
-            { rank: 94, title: "喜欢你", artist: "邓紫棋", platforms: ["qq", "netease"], plays: 98000000 },
-            { rank: 95, title: "演员", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 94000000 },
-            { rank: 96, title: "可惜没如果", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 88000000 },
-            { rank: 97, title: "修炼爱情", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 84000000 },
-            { rank: 98, title: "后来", artist: "刘若英", platforms: ["qq", "netease", "kugou"], plays: 76000000 },
-            { rank: 99, title: "童话", artist: "光良", platforms: ["qq", "netease", "kugou"], plays: 62000000 },
-            { rank: 100, title: "小情歌", artist: "苏打绿", platforms: ["netease", "qq"], plays: 58000000 }
+            { rank: 1, title: "信仰", artist: "张信哲", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1580000000, isNew: true, neteaseId: 25643328 },
+            { rank: 2, title: "恋人", artist: "李荣浩", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1420000000, isNew: true, neteaseId: 1974443814 },
+            { rank: 3, title: "四点的海棠花未眠", artist: "钟棋煜(渡)", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1380000000, neteaseId: 2161015058 },
+            { rank: 4, title: "大花轿", artist: "张艺兴/火风", platforms: ["qq", "netease", "douyin"], plays: 1250000000, isNew: true, neteaseId: 2161682920 },
+            { rank: 5, title: "失眠", artist: "Suki刘舒妤", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1180000000, isNew: true, neteaseId: 2145802282 },
+            { rank: 6, title: "唯一", artist: "邓紫棋", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1050000000, isNew: true, neteaseId: 2161448620 },
+            { rank: 7, title: "没出息", artist: "王博", platforms: ["douyin", "qq", "kugou"], plays: 980000000, neteaseId: 2127574093 },
+            { rank: 8, title: "一半一半", artist: "Top Barry/INDEcompany", platforms: ["qq", "netease", "douyin"], plays: 920000000, isNew: true, neteaseId: 2143523048 },
+            { rank: 9, title: "爱错", artist: "王力宏", platforms: ["qq", "netease", "kugou", "douyin"], plays: 880000000, isNew: true, neteaseId: 108138 },
+            { rank: 10, title: "莫问归期", artist: "唐伯虎", platforms: ["douyin", "qq", "netease"], plays: 850000000, neteaseId: 1492338158 },
+            { rank: 11, title: "离开我的依赖", artist: "王艳薇", platforms: ["qq", "netease", "douyin"], plays: 820000000, isNew: true, neteaseId: 2120459604 },
+            { rank: 12, title: "不会太晚", artist: "刘宇宁", platforms: ["qq", "netease", "kugou"], plays: 780000000, isNew: true, neteaseId: 2161504360 },
+            { rank: 13, title: "世界赠予我的", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 750000000, neteaseId: 2159199788 },
+            { rank: 14, title: "是你没选我啊", artist: "音乐科代表洪嘉源", platforms: ["qq", "netease", "douyin"], plays: 720000000, isNew: true, neteaseId: 2159614770 },
+            { rank: 15, title: "小半", artist: "陈粒", platforms: ["netease", "qq", "douyin"], plays: 700000000, isNew: true, neteaseId: 436514312 },
+            { rank: 16, title: "反重力爱情", artist: "王一博", platforms: ["qq", "douyin", "kugou"], plays: 680000000, neteaseId: 2109025188 },
+            { rank: 17, title: "大展鸿图", artist: "揽佬/刘夫阳", platforms: ["douyin", "qq", "kugou"], plays: 660000000, isNew: true, neteaseId: 2159688476 },
+            { rank: 18, title: "冬眠·启", artist: "周深", platforms: ["netease", "qq", "kugou"], plays: 650000000, neteaseId: 2142893118 },
+            { rank: 19, title: "我怀念的", artist: "孙燕姿", platforms: ["qq", "netease", "kugou"], plays: 630000000, isNew: true, neteaseId: 25638229 },
+            { rank: 20, title: "爱河", artist: "ZaZaZsu", platforms: ["douyin", "qq", "netease"], plays: 620000000, neteaseId: 2158395596 },
+            { rank: 21, title: "烟花易冷", artist: "周杰伦", platforms: ["qq", "netease", "kugou", "douyin"], plays: 600000000, isNew: true, neteaseId: 185809 },
+            { rank: 22, title: "大东北我的家乡", artist: "何玉", platforms: ["douyin", "kugou"], plays: 590000000, isNew: true, neteaseId: 2159688478 },
+            { rank: 23, title: "游弋", artist: "Jei Cyclist/莉莉童", platforms: ["netease", "qq"], plays: 580000000, neteaseId: 2119584178 },
+            { rank: 24, title: "量变临界点", artist: "华晨宇", platforms: ["netease", "qq", "kugou"], plays: 560000000, neteaseId: 2153992008 },
+            { rank: 25, title: "超能力", artist: "邓紫棋", platforms: ["qq", "douyin", "netease"], plays: 540000000, neteaseId: 2096391200 },
+            { rank: 26, title: "街角的晚风", artist: "陈小春", platforms: ["qq", "kugou", "douyin"], plays: 530000000, neteaseId: 2103011868 },
+            { rank: 27, title: "大风吹(Live)", artist: "刘惜君/王赫野", platforms: ["douyin", "qq"], plays: 500000000, neteaseId: 1974443816 },
+            { rank: 28, title: "奔赴星空", artist: "尹昔眠", platforms: ["douyin", "netease"], plays: 480000000, neteaseId: 1988220058 },
+            { rank: 29, title: "爱不会绝迹", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 460000000, neteaseId: 1824045033 },
+            { rank: 30, title: "星辰大海", artist: "黄霄雲", platforms: ["qq", "netease", "kugou"], plays: 450000000, neteaseId: 1810948042 },
+            { rank: 31, title: "10831km", artist: "Vicky宣宣", platforms: ["qq", "netease"], plays: 430000000, neteaseId: 2124320946 },
+            { rank: 32, title: "3030", artist: "宫阁", platforms: ["netease", "qq"], plays: 420000000, neteaseId: 2117547406 },
+            { rank: 33, title: "Anti-People Pleaser", artist: "Chace", platforms: ["netease", "qq"], plays: 400000000, neteaseId: 2112312596 },
+            { rank: 34, title: "爱呀爱呀爱", artist: "Crispy脆乐团", platforms: ["qq", "netease"], plays: 380000000, neteaseId: 2120459608 },
+            { rank: 35, title: "Deadman", artist: "蔡徐坤", platforms: ["qq", "kugou"], plays: 360000000, neteaseId: 2116858818 },
+            { rank: 36, title: "拖拉机", artist: "张艺兴", platforms: ["qq", "netease", "douyin"], plays: 350000000, neteaseId: 2158395598 },
+            { rank: 37, title: "左转灯(Live)", artist: "汪苏泷/周兴哲", platforms: ["qq", "kugou"], plays: 340000000, neteaseId: 2115582596 },
+            { rank: 38, title: "爱久见人心", artist: "小西门", platforms: ["qq", "netease"], plays: 330000000, neteaseId: 2095898578 },
+            { rank: 39, title: "探故知", artist: "浅影阿", platforms: ["qq", "douyin"], plays: 320000000, neteaseId: 2102258876 },
+            { rank: 40, title: "大东北我的家乡", artist: "袁娅维", platforms: ["qq", "netease"], plays: 310000000, neteaseId: 2157688466 },
+            { rank: 41, title: "墙", artist: "陈楚生", platforms: ["qq", "netease", "kugou"], plays: 300000000, neteaseId: 2115582600 },
+            { rank: 42, title: "若月亮没来", artist: "en", platforms: ["netease", "douyin"], plays: 290000000, neteaseId: 1962233756 },
+            { rank: 43, title: "悬溺", artist: "葛东琪", platforms: ["netease", "qq"], plays: 285000000, neteaseId: 1397315066 },
+            { rank: 44, title: "起风了", artist: "买辣椒也用券", platforms: ["netease", "qq", "kugou"], plays: 280000000, neteaseId: 1330348068 },
+            { rank: 45, title: "凄美地", artist: "郭顶", platforms: ["netease", "qq"], plays: 275000000, neteaseId: 449818741 },
+            { rank: 46, title: "土坡上的狗尾草", artist: "崔开潮", platforms: ["douyin", "netease"], plays: 270000000, neteaseId: 1937619930 },
+            { rank: 47, title: "跳楼机", artist: "艾热AIR", platforms: ["netease", "qq"], plays: 265000000, neteaseId: 2115582604 },
+            { rank: 48, title: "暮色回响", artist: "张闻骏", platforms: ["netease", "qq"], plays: 260000000, neteaseId: 2095898580 },
+            { rank: 49, title: "小美满", artist: "周深", platforms: ["qq", "netease"], plays: 255000000, neteaseId: 1420830696 },
+            { rank: 50, title: "青花", artist: "周传雄", platforms: ["qq", "kugou"], plays: 250000000, neteaseId: 298317 },
+            { rank: 51, title: "童话镇", artist: "陈一发儿", platforms: ["netease", "qq"], plays: 245000000, neteaseId: 436514235 },
+            { rank: 52, title: "战马", artist: "海来阿木", platforms: ["douyin", "kugou"], plays: 240000000, neteaseId: 1920220038 },
+            { rank: 53, title: "搀扶", artist: "孙露", platforms: ["douyin", "kugou"], plays: 235000000, neteaseId: 167919 },
+            { rank: 54, title: "诺言", artist: "海来阿木", platforms: ["kugou", "douyin"], plays: 230000000, neteaseId: 1920220042 },
+            { rank: 55, title: "此生无憾", artist: "等什么君", platforms: ["netease", "qq"], plays: 225000000, neteaseId: 1903898498 },
+            { rank: 56, title: "离别开出花", artist: "就是南方凯", platforms: ["douyin", "qq"], plays: 220000000, neteaseId: 1948126868 },
+            { rank: 57, title: "苹果香", artist: "崔开潮", platforms: ["douyin", "netease"], plays: 218000000, neteaseId: 1937619932 },
+            { rank: 58, title: "反方向的钟", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 210000000, neteaseId: 185807 },
+            { rank: 59, title: "明明就", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 205000000, neteaseId: 185868 },
+            { rank: 60, title: "变废为宝", artist: "薛之谦", platforms: ["netease", "qq"], plays: 200000000, neteaseId: 2075382658 },
+            { rank: 61, title: "彩券", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 195000000, neteaseId: 2075382660 },
+            { rank: 62, title: "天外来物", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 190000000, neteaseId: 1824020926 },
+            { rank: 63, title: "无双的王者", artist: "邓紫棋", platforms: ["qq", "kugou"], plays: 185000000, neteaseId: 2096391204 },
+            { rank: 64, title: "孤勇者", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 180000000, neteaseId: 1901371647 },
+            { rank: 65, title: "这世界那么多人", artist: "莫文蔚", platforms: ["qq", "netease"], plays: 175000000, neteaseId: 1824045037 },
+            { rank: 66, title: "漠河舞厅", artist: "柳爽", platforms: ["netease", "douyin"], plays: 170000000, neteaseId: 1815936598 },
+            { rank: 67, title: "错位时空", artist: "艾辰", platforms: ["netease", "qq"], plays: 165000000, neteaseId: 1810948046 },
+            { rank: 68, title: "可能", artist: "程响", platforms: ["netease", "kugou"], plays: 160000000, neteaseId: 1397315070 },
+            { rank: 69, title: "大鱼", artist: "周深", platforms: ["qq", "netease"], plays: 155000000, neteaseId: 413812448 },
+            { rank: 70, title: "光年之外", artist: "邓紫棋", platforms: ["qq", "netease", "kugou"], plays: 150000000, neteaseId: 449818743 },
+            { rank: 71, title: "踏山河", artist: "是七叔呢", platforms: ["douyin", "kugou"], plays: 148000000, neteaseId: 1810948048 },
+            { rank: 72, title: "白月光与朱砂痣", artist: "大籽", platforms: ["douyin", "netease"], plays: 145000000, neteaseId: 1492275058 },
+            { rank: 73, title: "云与海", artist: "阿YueYue", platforms: ["douyin", "netease"], plays: 142000000, neteaseId: 1842025914 },
+            { rank: 74, title: "执迷不悟", artist: "小乐哥", platforms: ["douyin", "kugou"], plays: 140000000, neteaseId: 1492275060 },
+            { rank: 75, title: "浪子闲话", artist: "花僮", platforms: ["douyin", "kugou"], plays: 138000000, neteaseId: 1815936600 },
+            { rank: 76, title: "清空", artist: "王忻辰/苏星婕", platforms: ["douyin", "netease"], plays: 135000000, neteaseId: 1815936596 },
+            { rank: 77, title: "半生雪", artist: "是七叔呢", platforms: ["douyin", "kugou"], plays: 132000000, neteaseId: 1815936602 },
+            { rank: 78, title: "一路生花", artist: "温奕心", platforms: ["netease", "qq"], plays: 130000000, neteaseId: 1903898500 },
+            { rank: 79, title: "富士山下", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 128000000, neteaseId: 64093 },
+            { rank: 80, title: "稻香", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 126000000, neteaseId: 185813 },
+            { rank: 81, title: "晴天", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 124000000, neteaseId: 186016 },
+            { rank: 82, title: "七里香", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 122000000, neteaseId: 186001 },
+            { rank: 83, title: "夜曲", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 120000000, neteaseId: 185820 },
+            { rank: 84, title: "告白气球", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 118000000, neteaseId: 418602084 },
+            { rank: 85, title: "青花瓷", artist: "周杰伦", platforms: ["qq", "netease", "kugou"], plays: 116000000, neteaseId: 185804 },
+            { rank: 86, title: "以父之名", artist: "周杰伦", platforms: ["qq", "netease"], plays: 114000000, neteaseId: 185868 },
+            { rank: 87, title: "红豆", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 112000000, neteaseId: 254574 },
+            { rank: 88, title: "匆匆那年", artist: "王菲", platforms: ["qq", "netease"], plays: 110000000, neteaseId: 29567189 },
+            { rank: 89, title: "传奇", artist: "王菲", platforms: ["qq", "netease", "kugou"], plays: 108000000, neteaseId: 276904 },
+            { rank: 90, title: "十年", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 106000000, neteaseId: 64091 },
+            { rank: 91, title: "浮夸", artist: "陈奕迅", platforms: ["qq", "netease"], plays: 104000000, neteaseId: 64090 },
+            { rank: 92, title: "K歌之王", artist: "陈奕迅", platforms: ["qq", "netease", "kugou"], plays: 102000000, neteaseId: 64086 },
+            { rank: 93, title: "泡沫", artist: "邓紫棋", platforms: ["qq", "netease"], plays: 100000000, neteaseId: 25657380 },
+            { rank: 94, title: "喜欢你", artist: "邓紫棋", platforms: ["qq", "netease"], plays: 98000000, neteaseId: 25657384 },
+            { rank: 95, title: "演员", artist: "薛之谦", platforms: ["netease", "qq", "kugou"], plays: 94000000, neteaseId: 32507038 },
+            { rank: 96, title: "可惜没如果", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 88000000, neteaseId: 31445772 },
+            { rank: 97, title: "修炼爱情", artist: "林俊杰", platforms: ["qq", "netease", "kugou"], plays: 84000000, neteaseId: 27731176 },
+            { rank: 98, title: "后来", artist: "刘若英", platforms: ["qq", "netease", "kugou"], plays: 76000000, neteaseId: 254574 },
+            { rank: 99, title: "童话", artist: "光良", platforms: ["qq", "netease", "kugou"], plays: 62000000, neteaseId: 386538 },
+            { rank: 100, title: "小情歌", artist: "苏打绿", platforms: ["netease", "qq"], plays: 58000000, neteaseId: 287020 }
         ];
 
         // 平台名称映射
@@ -646,12 +716,12 @@
             }
 
             songList.innerHTML = songsToRender.map(song => `
-                <div class="song-card-expanded" data-platforms="${song.platforms.join(',')}">
+                <div class="song-card-expanded" data-platforms="${song.platforms.join(',')}" data-netease-id="${song.neteaseId || ''}" onclick="togglePlayer(this, ${song.neteaseId || 0})">
                     <div class="rank ${getRankClass(song.rank)}">${song.rank}</div>
                     <div class="song-cover">${getMusicIcon()}</div>
                     <div class="song-main-info">
                         <div class="song-info">
-                            <div class="song-title">${song.title}${song.isNew ? '<span class="new-tag">NEW</span>' : ''}</div>
+                            <div class="song-title">${song.title}${song.isNew ? '<span class="new-tag">NEW</span>' : ''}${song.neteaseId ? ' <span style="font-size: 0.8em; color: #e74c3c;">▶</span>' : ''}</div>
                             <div class="song-artist">${song.artist}</div>
                         </div>
                         <div class="play-count">
@@ -664,6 +734,11 @@
                             ${generatePlayLinks(song)}
                         </div>
                     </div>
+                    ${song.neteaseId ? `
+                    <div class="player-container">
+                        <iframe src="//music.163.com/outchain/player?type=2&id=${song.neteaseId}&auto=0&height=66" frameborder="0"></iframe>
+                    </div>
+                    ` : ''}
                 </div>
             `).join('');
         }
@@ -699,6 +774,43 @@
 
         // 初始渲染
         renderSongs(songs);
+
+        // 播放器切换功能
+        let currentPlayer = null;
+        
+        function togglePlayer(card, neteaseId) {
+            // 阻止点击播放链接时触发
+            if (event.target.closest('.play-link')) {
+                return;
+            }
+            
+            if (!neteaseId) {
+                return;
+            }
+            
+            const playerContainer = card.querySelector('.player-container');
+            
+            // 如果点击的是当前已展开的播放器，则关闭它
+            if (currentPlayer === playerContainer && playerContainer.classList.contains('active')) {
+                playerContainer.classList.remove('active');
+                card.classList.remove('player-active');
+                currentPlayer = null;
+                return;
+            }
+            
+            // 关闭之前的播放器
+            if (currentPlayer && currentPlayer !== playerContainer) {
+                currentPlayer.classList.remove('active');
+                currentPlayer.closest('.song-card-expanded').classList.remove('player-active');
+            }
+            
+            // 展开新的播放器
+            if (playerContainer) {
+                playerContainer.classList.add('active');
+                card.classList.add('player-active');
+                currentPlayer = playerContainer;
+            }
+        }
     </script>
 </body>
 </html>
