@@ -507,6 +507,52 @@
             background: rgba(231, 76, 60, 0.1);
             border: 1px solid rgba(231, 76, 60, 0.3);
         }
+
+        /* Chart Navigation */
+        .chart-nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .year-selector {
+            display: flex;
+            gap: 15px;
+        }
+
+        .year-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
+            color: #ccc;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .year-btn.active, .year-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border-color: #48dbfb;
+            box-shadow: 0 0 10px rgba(72, 219, 251, 0.3);
+        }
+
+        .period-selector select {
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            min-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -542,6 +588,18 @@
             </ul>
         </div>
 
+        <div class="chart-nav">
+            <div class="year-selector">
+                <button class="year-btn active" data-year="2026">2026年</button>
+                <button class="year-btn" data-year="2025">2025年</button>
+            </div>
+            <div class="period-selector">
+                <select id="periodSelect">
+                    <!-- Javascript will populate this -->
+                </select>
+            </div>
+        </div>
+
         <div class="search-box">
             <input type="text" class="search-input" id="searchInput" placeholder="搜索歌曲名或歌手...">
         </div>
@@ -564,9 +622,9 @@
     </div>
 
     <script>
-        // 热门歌曲数据 - 整合自各平台公开榜单 (2026年1月更新)
+        // 基础数据 - 用于生成模拟数据 (实际环境应从API或不同文件加载)
         // neteaseId: 网易云音乐歌曲ID，用于内嵌播放器
-        const songs = [
+        const baseSongs = [
             // 2026年1月新上榜热歌
             { rank: 1, title: "信仰", artist: "张信哲", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1580000000, isNew: true, neteaseId: 25643328 },
             { rank: 2, title: "恋人", artist: "李荣浩", platforms: ["qq", "netease", "kugou", "douyin"], plays: 1420000000, isNew: true, neteaseId: 1974443814 },
@@ -669,6 +727,105 @@
             { rank: 99, title: "童话", artist: "光良", platforms: ["qq", "netease", "kugou"], plays: 62000000, neteaseId: 386538 },
             { rank: 100, title: "小情歌", artist: "苏打绿", platforms: ["netease", "qq"], plays: 58000000, neteaseId: 287020 }
         ];
+
+        // --- 数据生成与管理逻辑 ---
+
+        // 模拟数据生成函数 (用于演示不同榜单)
+        function generateMockData(baseList, seed) {
+            let list = JSON.parse(JSON.stringify(baseList)); // Deep copy
+            // 简单的随机排序算法
+            list.sort(() => Math.sin(seed++) - 0.5);
+            // 重新分配排名并微调播放量
+            return list.map((item, index) => ({
+                ...item,
+                rank: index + 1,
+                plays: Math.floor(item.plays * (0.8 + Math.abs(Math.sin(seed + index)) * 0.4)),
+                isNew: Math.random() > 0.8 // 随机新歌标识
+            })).slice(0, 100);
+        }
+
+        // 生成各榜单数据
+        const songs2026w4 = baseSongs; // 当前真实数据
+        const songs2026w3 = generateMockData(baseSongs, 202603);
+        const songs2026w2 = generateMockData(baseSongs, 202602);
+        const songs2026w1 = generateMockData(baseSongs, 202601);
+
+        const songs2025Year = generateMockData(baseSongs, 202599); // 2025总榜
+        const songs2025w52 = generateMockData(baseSongs, 202552); // 2025最后一周
+        const songs2025w26 = generateMockData(baseSongs, 202526); // 2025年中
+        const songs2025w1 = generateMockData(baseSongs, 202501); // 2025第一周
+
+        const chartConfig = {
+            '2026': [
+                { id: '2026-w4', name: '第4周 (1.20-1.26) [最新]', data: songs2026w4 },
+                { id: '2026-w3', name: '第3周 (1.13-1.19)', data: songs2026w3 },
+                { id: '2026-w2', name: '第2周 (1.06-1.12)', data: songs2026w2 },
+                { id: '2026-w1', name: '第1周 (12.30-1.05)', data: songs2026w1 },
+            ],
+            '2025': [
+                { id: '2025-year', name: '2025年度百大热歌总榜', data: songs2025Year },
+                { id: '2025-w52', name: '2025 第52周', data: songs2025w52 },
+                { id: '2025-w26', name: '2025 第26周', data: songs2025w26 },
+                { id: '2025-w1', name: '2025 第1周', data: songs2025w1 },
+            ]
+        };
+
+        // 当前活动列表变量
+        let songs = [...baseSongs];
+        let currentYear = '2026';
+
+        // 初始化选择器
+        function initSelectors() {
+            const yearBtns = document.querySelectorAll('.year-btn');
+            const periodSelect = document.getElementById('periodSelect');
+
+            // 年份切换
+            yearBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                   yearBtns.forEach(b => b.classList.remove('active'));
+                   btn.classList.add('active');
+                   currentYear = btn.dataset.year;
+                   updatePeriodSelect();
+                });
+            });
+
+            // 周期切换
+            periodSelect.addEventListener('change', (e) => {
+                const yearData = chartConfig[currentYear];
+                const selected = yearData.find(item => item.id === e.target.value);
+                if(selected) {
+                    songs = selected.data;
+                    // 重置搜索框
+                    document.getElementById('searchInput').value = '';
+                    // 重新渲染
+                    renderSongs(songs);
+                    // 这里不重置类型过滤，保留用户偏好可能更好，或者重置为全部：
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelector('[data-filter="all"]').classList.add('active');
+                    
+                    // 更新标题日期
+                    const titleText = selected.name.includes('年度') ? selected.name : `${currentYear}年 ${selected.name}`;
+                    // 可以选择更新页面某个位置显示的标题，这里暂时不需要
+                }
+            });
+
+            // 初始加载选项
+            updatePeriodSelect();
+        }
+
+        function updatePeriodSelect() {
+            const periodSelect = document.getElementById('periodSelect');
+            const list = chartConfig[currentYear];
+            periodSelect.innerHTML = list.map(item => 
+                `<option value="${item.id}">${item.name}</option>`
+            ).join('');
+            
+            // 触发一次change以加载该年份默认的第一项
+            periodSelect.dispatchEvent(new Event('change'));
+        }
+
+        //启动选择器逻辑 (在DOM加载后) -- 放在脚本末尾执行
+        
 
         // 平台名称映射
         const platformNames = {
@@ -790,8 +947,9 @@
             });
         });
 
-        // 初始渲染
-        renderSongs(songs);
+        // 初始渲染 - 改为由initSelectors触发
+        // renderSongs(songs);
+        initSelectors();
 
         // 播放器切换功能
         let currentPlayer = null;
