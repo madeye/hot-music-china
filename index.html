@@ -276,6 +276,7 @@
             grid-column: 3;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 15px;
             flex-wrap: wrap;
         }
@@ -298,8 +299,9 @@
 
         .song-stats {
             display: flex;
-            gap: 20px;
+            gap: 12px;
             align-items: center;
+            margin-left: auto;
         }
 
         .stat-box {
@@ -868,6 +870,15 @@
                             <div class="song-title">${song.title}${song.isNew ? '<span class="new-tag">NEW</span>' : ''}</div>
                             <div class="song-artist">${song.artist}</div>
                         </div>
+                        <div class="play-count">
+                            <div class="play-number">${formatPlays(song.plays)}</div>
+                            <div class="play-label">综合热度</div>
+                        </div>
+                    </div>
+                    <div class="song-links-row">
+                        <div class="play-links">
+                            ${generatePlayLinks(song)}
+                        </div>
                         <div class="song-stats">
                             <div class="stat-box">
                                 <div class="stat-value">${formatDaysOnChart(song.daysOnChart)}</div>
@@ -877,15 +888,6 @@
                                 <div class="stat-value peak-rank">#${song.peakRank}</div>
                                 <div class="stat-desc">最高位次</div>
                             </div>
-                        </div>
-                        <div class="play-count">
-                            <div class="play-number">${formatPlays(song.plays)}</div>
-                            <div class="play-label">综合热度</div>
-                        </div>
-                    </div>
-                    <div class="song-links-row">
-                        <div class="play-links">
-                            ${generatePlayLinks(song)}
                         </div>
                     </div>
                 </div>
