@@ -32,9 +32,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Prepare static site
-        run: |
-          mkdir -p _site
-          cp index.html _site/
+        run: python3 scripts/generate_page.py
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
